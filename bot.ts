@@ -2,7 +2,7 @@ import express from "express";
 import { Db } from "./db";
 import dotenv from "dotenv";
 import cron from "node-cron";
-import run from "./fetchDb";
+import { run } from "./fetchDb";
 
 dotenv.config();
 
@@ -107,6 +107,7 @@ let schedule = process.env.CRON_SCHEDULE;
 
 if (!schedule) {
   schedule = "30 2 * * *"; // Default to every day at 10:30 AM SGT (2:30 AM UTC)
+  // schedule = "*/1 * * * *"; // For testing: every minute
 }
 
 if (!cron.validate(schedule)) {
