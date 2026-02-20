@@ -2,3 +2,5 @@
 .env*
 mcqs.json
 
+*.db
+
