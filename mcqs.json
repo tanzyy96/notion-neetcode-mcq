@@ -1,0 +1,180 @@
+[
+  {
+    "question": "In the 'Longest Repeating Character Replacement' problem, you use a sliding window approach. What is the key condition used to determine whether the current window is valid (i.e., can be made into a string of all identical characters with at most k replacements)?",
+    "leetcode_description": "You are given a string s and an integer k. You can choose any character of the string and change it to any other uppercase English character. You can perform this operation at most k times. Return the length of the longest substring containing the same letter you can get after performing the above operations.",
+    "options": [
+      {
+        "content": "windowLength - maxFrequency <= k, where maxFrequency is the count of the most frequent character in the current window",
+        "is_correct": true
+      },
+      {
+        "content": "windowLength - k <= maxFrequency, where maxFrequency is the count of the least frequent character in the current window",
+        "is_correct": false
+      },
+      {
+        "content": "windowLength <= k + totalUniqueCharacters, where totalUniqueCharacters is the number of distinct characters in the current window",
+        "is_correct": false
+      },
+      {
+        "content": "maxFrequency - windowLength >= k, where maxFrequency is the count of the most frequent character in the current window",
+        "is_correct": false
+      }
+    ],
+    "explanation": "The key insight is that in any window of length L, if the most frequent character appears 'maxFrequency' times, then we need to replace (L - maxFrequency) other characters to make all characters the same. If (L - maxFrequency) <= k, the window is valid and can be achieved with at most k replacements. When this condition is violated, we shrink the window from the left. This is why we track the maximum frequency character count in the sliding window — we want to maximize the window where the number of characters to replace does not exceed k."
+  }
+][
+  {
+    "question": "In the 'Longest Repeating Character Replacement' problem, you use a sliding window approach. Inside the window of size (right - left + 1), what is the key condition that determines whether the current window is INVALID and needs to be shrunk?",
+    "leetcode_description": "You are given a string s and an integer k. You can choose any character of the string and change it to any other uppercase English character. You can perform this operation at most k times. Return the length of the longest substring containing the same letter you can replace after performing the above operations.",
+    "options": [
+      {
+        "content": "(window size) - (count of most frequent character in window) > k",
+        "is_correct": true
+      },
+      {
+        "content": "(window size) - (count of least frequent character in window) > k",
+        "is_correct": false
+      },
+      {
+        "content": "(count of most frequent character in window) > k",
+        "is_correct": false
+      },
+      {
+        "content": "(window size) > k",
+        "is_correct": false
+      }
+    ],
+    "explanation": "The core insight of the sliding window approach is that within any window, the minimum number of replacements needed equals (window size) - (count of the most frequent character). This is because we want to keep the most frequent character and replace all others. If this value exceeds k, we have used more than k replacements, making the window invalid. We then slide the window by incrementing the left pointer. The condition is: (right - left + 1) - maxCount > k, where maxCount is the frequency of the most common character in the current window.",
+    "id": "MLRnZmpIIOyg6TZJyxeuF"
+  }
+]
+[
+  {
+    "question": "In the Last Stone Weight problem, what data structure is most appropriate for efficiently finding and removing the two heaviest stones repeatedly?",
+    "leetcode_description": "You are given an array of integers stones where stones[i] is the weight of the ith stone. We are playing a game with the stones. On each turn, we smash together the two heaviest stones. If the stones have equal weight, both are destroyed. If not, the heavier stone survives with a new weight equal to the difference. Return the weight of the last remaining stone, or 0 if none remain.",
+    "options": [
+      {
+        "content": "A Min-Heap (Priority Queue), because it allows efficient retrieval of the smallest element in O(log n) time.",
+        "is_correct": false
+      },
+      {
+        "content": "A Max-Heap (Priority Queue), because it allows efficient retrieval of the largest element in O(log n) time, making it easy to repeatedly extract the two heaviest stones.",
+        "is_correct": true
+      },
+      {
+        "content": "A sorted Array, because binary search allows us to find the two heaviest stones in O(log n) time.",
+        "is_correct": false
+      },
+      {
+        "content": "A Hash Map, because it provides O(1) lookup time for finding the heaviest stones.",
+        "is_correct": false
+      }
+    ],
+    "explanation": "A Max-Heap (Max Priority Queue) is the ideal data structure for this problem. At each step, we need to quickly access and remove the two largest stones. A Max-Heap provides O(log n) insertion and O(log n) removal of the maximum element. After smashing the two largest stones, if there is a remainder, we push it back into the heap. This continues until at most one stone remains. A Min-Heap wouldn't work directly since we need the maximum, not minimum. A sorted array would require O(n) shifting on insert, and a Hash Map doesn't maintain order for max retrieval.",
+    "id": "2MrnZwdLhnvLVjIzOA4Uh"
+  }
+]
+[
+  {
+    "question": "In the 'Capacity to Ship Packages Within D Days' problem, when applying Binary Search, what do the LEFT and RIGHT boundaries of the search space represent?",
+    "leetcode_description": "A conveyor belt has packages that must be shipped from one port to another within days days. The ith package on the conveyor belt has a weight of weights[i]. Each day, we load the ship with packages on the conveyor belt (in the order given by weights). We may not load more weight than the maximum weight capacity of the ship. Return the least weight capacity of the ship that will result in all the packages on the conveyor belt being shipped within days days.",
+    "options": [
+      {
+        "content": "LEFT = 0, RIGHT = sum of all weights, because the ship capacity can be anywhere from 0 to carrying everything at once.",
+        "is_correct": false
+      },
+      {
+        "content": "LEFT = max(weights), RIGHT = sum(weights), because the ship must carry at least the heaviest package, and at most all packages in one day.",
+        "is_correct": true
+      },
+      {
+        "content": "LEFT = min(weights), RIGHT = max(weights), because the ship capacity is bounded by the smallest and largest package weights.",
+        "is_correct": false
+      },
+      {
+        "content": "LEFT = 1, RIGHT = max(weights) * days, because the total capacity is distributed across all days.",
+        "is_correct": false
+      }
+    ],
+    "explanation": "The binary search is performed on the 'capacity' of the ship. The minimum possible capacity is max(weights), because the ship must be able to carry at least the single heaviest package (otherwise it can never be shipped). The maximum possible capacity is sum(weights), because if the ship can carry all packages at once, it will always finish in 1 day, which satisfies any value of days. Any value outside this range is either impossible (too small) or unnecessary (too large), making [max(weights), sum(weights)] the correct and tight search space.",
+    "id": "X23eHJhk1MEf4nhoiv4EO"
+  }
+]
+[
+  {
+    "question": "In the 'Online Stock Span' problem, a monotonic stack is used to efficiently calculate the span of stock prices. What does the stack store, and what is the key invariant maintained by the stack?",
+    "leetcode_description": "Design an algorithm that collects daily price quotes for some stock and returns the span of that stock's price for the current day. The span of the stock's price in one day is defined as the maximum number of consecutive days (starting from that day and going backward) for which the stock price was less than or equal to the price of that day. Implement the StockSpanner class with a next(int price) function that returns the span of the stock's price for the current day.",
+    "options": [
+      {
+        "content": "The stack stores individual stock prices in increasing order (bottom to top), and we pop elements smaller than the current price, counting how many were popped to compute the span.",
+        "is_correct": false
+      },
+      {
+        "content": "The stack stores pairs of (price, span), where the stack is maintained in decreasing order of prices (bottom to top). When a new price arrives, we pop all pairs whose price is less than or equal to the current price, accumulating their spans, so the current span equals 1 plus the sum of all popped spans.",
+        "is_correct": true
+      },
+      {
+        "content": "The stack stores pairs of (price, index), and the span is computed as current_index minus the index of the top element after popping all elements smaller than the current price.",
+        "is_correct": false
+      },
+      {
+        "content": "The stack stores pairs of (price, span) in increasing order of prices (bottom to top), and we only pop elements whose price is strictly less than the current price to compute the span.",
+        "is_correct": false
+      }
+    ],
+    "explanation": "The correct approach uses a monotonic decreasing stack storing (price, span) pairs. When next(price) is called, we pop all pairs from the stack where the stored price is <= current price, accumulating their spans. The current span starts at 1 and grows by adding each popped span, because those days were already consecutively behind the popped price. This avoids re-scanning previously seen days, achieving amortized O(1) time per call. Storing just prices or indices (options A and C) loses the accumulated span information. Option D is incorrect because prices equal to the current price should also be popped and their spans included.",
+    "id": "_8ZQsOeqJZhWUSGb6XxrU"
+  }
+]
+[
+  {
+    "question": "In the Two Pointers approach for the 3Sum problem, after sorting the array and fixing the first element `nums[i]`, what is the primary purpose of moving the left pointer (`l`) and right pointer (`r`) inward?",
+    "leetcode_description": "Given an integer array nums, return all the triplets [nums[i], nums[j], nums[k]] such that i != j, i != k, and j != k, and nums[i] + nums[j] + nums[k] == 0. Notice that the solution set must not contain duplicate triplets.",
+    "options": [
+      {
+        "content": "To find all pairs (nums[l], nums[r]) such that nums[l] + nums[r] == -nums[i], efficiently narrowing down candidates based on whether the current sum is too large or too small.",
+        "is_correct": true
+      },
+      {
+        "content": "To find all pairs (nums[l], nums[r]) such that nums[l] + nums[r] == nums[i], efficiently narrowing down candidates based on whether the current sum is too large or too small.",
+        "is_correct": false
+      },
+      {
+        "content": "To binary search for the complement of nums[i] within the subarray, using the left and right pointers only to define the search boundary.",
+        "is_correct": false
+      },
+      {
+        "content": "To swap elements in-place so that duplicates are moved to the ends of the array, making it easier to skip them during iteration.",
+        "is_correct": false
+      }
+    ],
+    "explanation": "After sorting the array and fixing nums[i], we need two other numbers that sum to zero with it. This means we need nums[l] + nums[r] = -nums[i]. The two-pointer technique works here because the array is sorted: if the current sum (nums[i] + nums[l] + nums[r]) is less than zero, we move the left pointer right (to increase the sum); if it's greater than zero, we move the right pointer left (to decrease the sum). This eliminates the need for a nested O(n²) loop, bringing the overall complexity to O(n²) instead of O(n³).",
+    "id": "h3kkqG5Uwb_xX9Uxq4X01"
+  }
+]
+[
+  {
+    "question": "In the 'Islands & Treasures' problem, you are given a grid where -1 represents walls, 0 represents treasure chests, and INF (2147483647) represents empty land. What is the most efficient approach to fill each empty cell with the distance to its nearest treasure chest?",
+    "leetcode_description": "You are given a m x n 2D grid initialized with these three possible values:\n-1 - A wall or an obstacle.\n0 - A treasure chest.\nINF - Infinity means an empty room.\n\nFill each empty room with the distance to its nearest treasure chest. If it is impossible to reach a treasure chest, leave it as INF.\n\nConstraints:\n- m == grid.length\n- n == grid[i].length\n- 1 <= m, n <= 250\n- grid[i][j] is one of {-1, 0, INF}",
+    "options": [
+      {
+        "content": "Run Dijkstra's algorithm from each empty cell (INF) individually to find the shortest path to any treasure chest (0), updating each cell with the minimum distance found.",
+        "is_correct": false
+      },
+      {
+        "content": "Start a multi-source BFS simultaneously from all treasure chests (0) at once, propagating distances level by level to neighboring empty cells (INF), and skip walls (-1).",
+        "is_correct": true
+      },
+      {
+        "content": "Use DFS starting from each treasure chest (0), recursively updating all reachable empty cells (INF) with their distances, and take the minimum across all DFS runs.",
+        "is_correct": false
+      },
+      {
+        "content": "Apply dynamic programming by iterating over the grid twice (left-to-right then right-to-left) and updating each cell's distance based on its top and left neighbors, similar to the 'walls and gates' DP approach.",
+        "is_correct": false
+      }
+    ],
+    "explanation": "The optimal approach is multi-source BFS starting from all treasure chests (0) simultaneously. By enqueuing all 0-cells at the beginning and performing BFS level by level, each empty cell (INF) is reached in the fewest steps possible — guaranteeing the shortest distance. This runs in O(m*n) time. Running BFS/Dijkstra from each empty cell separately would be O((m*n)^2) in the worst case. DFS does not guarantee shortest distances. The DP approach only considers two directions and misses shortest paths coming from other directions.",
+    "id": "8bs5-coUia45LjN7vVK01"
+  }
+]
