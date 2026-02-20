@@ -1,6 +1,8 @@
 import express from "express";
 import { Db } from "./db";
 import dotenv from "dotenv";
+import cron from "node-cron";
+import run from "./fetchDb";
 
 dotenv.config();
 
@@ -101,5 +103,21 @@ app.post("/telegram-webhook", async (req, res) => {
   res.sendStatus(200);
 });
 
-console.log("Listening on port 3000");
-app.listen(3000);
+let schedule = process.env.CRON_SCHEDULE;
+
+if (!schedule) {
+  schedule = "30 2 * * *"; // Default to every day at 10:30 AM SGT (2:30 AM UTC)
+}
+
+if (!cron.validate(schedule)) {
+  throw new Error(`Invalid cron expression: ${schedule}`);
+}
+
+// Schedule everydau at 10:30 AM SGT => 2:30 AM UTC
+cron.schedule(schedule, async () => {
+  run();
+});
+
+app.listen(3000, () =>
+  console.log("Telegram bot server is running on port 3000"),
+);

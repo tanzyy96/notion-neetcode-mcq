@@ -253,7 +253,7 @@ async function saveToDb(db: Db, mcqs: McqQuestion[]) {
   }
 }
 
-const main = async () => {
+export const run = async () => {
   const db = new Db();
 
   const results = await fetchQuestions(DATABASE_ID);
@@ -269,4 +269,4 @@ const main = async () => {
   await sendToTelegram(mcqs);
 };
 
-main();
+run();
