@@ -84,4 +84,22 @@ export class Db {
 
     return { question: qn, correct: Boolean(correct) };
   }
+
+  getStreak() {
+    const stmt = this.instance.prepare(`
+      SELECT correct FROM attempts
+      ORDER BY answered_at DESC
+    `);
+    const attempts = stmt.all() as { correct: number }[];
+
+    let streak = 0;
+    for (const attempt of attempts) {
+      if (attempt.correct) {
+        streak++;
+      } else {
+        break;
+      }
+    }
+    return streak;
+  }
 }

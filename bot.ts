@@ -49,7 +49,11 @@ const handleAnswer = async (
 
     let message;
     if (isCorrect) {
-      message = "Correct! 🎉";
+      const currentStreak = db.getStreak();
+
+      message =
+        "Correct! 🎉\n\n" +
+        `Your current streak is ${currentStreak} ${currentStreak === 1 ? "day" : "days"}!`;
     } else {
       message = `Incorrect. 😞\n\n*Question:*\n${question.question}\n\n*Your Answer:*\n${answer}\n\n*Correct Answer:*\n${question.correct_answer}\n\n*Explanation:*\n${question.explanation}`;
     }
