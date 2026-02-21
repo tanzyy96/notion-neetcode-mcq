@@ -112,7 +112,7 @@ async function generateMcqs(
       messages: [
         {
           role: "user",
-          content: `Leetcode Question: ${name}. Tags: ${tags}. Generate a MCQ question with 4 options to test my understanding of the approach of the question. Do include an example of the function, i.e. twoSum([1,2,3], 4) = [1,2]`,
+          content: `Leetcode Question: ${name}. Tags: ${tags}. Generate a MCQ question with 4 options to test my understanding of the approach of the question. Do include an example of the function in the original Leetcode question, i.e. \`twoSum([1,2,3], 4) = [1,2]\``,
         },
       ],
       output_config: {
