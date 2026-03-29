@@ -3,10 +3,14 @@ import Database from "better-sqlite3";
 export interface Question {
   id: string;
   notion_page_id: string;
+  leetcode_name: string;
+  leetcode_url: string;
   leetcode_question: string;
   question: string;
   correct_answer: string;
   explanation: string;
+  options_json: string;
+  example: string;
 }
 
 export interface QuestionAttempt {
@@ -45,21 +49,56 @@ export class Db {
         answered_at DATETIME DEFAULT CURRENT_TIMESTAMP
       );
     `);
+
+    try {
+      this.instance.exec(`ALTER TABLE questions ADD COLUMN options_json TEXT DEFAULT '[]'`);
+    } catch {}
+    try {
+      this.instance.exec(`ALTER TABLE questions ADD COLUMN example TEXT DEFAULT ''`);
+    } catch {}
+    try {
+      this.instance.exec(`ALTER TABLE questions ADD COLUMN leetcode_name TEXT DEFAULT ''`);
+    } catch {}
+    try {
+      this.instance.exec(`ALTER TABLE questions ADD COLUMN leetcode_url TEXT DEFAULT ''`);
+    } catch {}
   }
 
   insertQuestion(question: {
     id: string;
     notion_page_id: string;
+    leetcode_name: string;
+    leetcode_url: string;
     leetcode_question: string;
     question: string;
     correct_answer: string;
     explanation: string;
+    options_json: string;
+    example: string;
   }) {
     const stmt = this.instance.prepare(`
-      INSERT INTO questions (id, notion_page_id, leetcode_question, question, correct_answer, explanation)
-      VALUES (@id, @notion_page_id, @leetcode_question, @question, @correct_answer, @explanation)
+      INSERT INTO questions (id, notion_page_id, leetcode_name, leetcode_url, leetcode_question, question, correct_answer, explanation, options_json, example)
+      VALUES (@id, @notion_page_id, @leetcode_name, @leetcode_url, @leetcode_question, @question, @correct_answer, @explanation, @options_json, @example)
     `);
     stmt.run(question);
+  }
+
+  getRandomQuestion(): { name: string; url: string } | undefined {
+    const stmt = this.instance.prepare(`
+      SELECT leetcode_name as name, leetcode_url as url
+      FROM questions
+      WHERE leetcode_name != '' AND leetcode_url != ''
+      ORDER BY RANDOM()
+      LIMIT 1
+    `);
+    return stmt.get() as { name: string; url: string } | undefined;
+  }
+
+  getQuestionsByLeetcodePageId(notionPageId: string): Question[] {
+    const stmt = this.instance.prepare(
+      `SELECT * FROM questions WHERE notion_page_id = ? AND options_json IS NOT NULL AND options_json != '[]'`
+    );
+    return stmt.all(notionPageId) as Question[];
   }
 
   getQuestion(id: string) {

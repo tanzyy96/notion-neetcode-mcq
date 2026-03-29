@@ -93,8 +93,29 @@ const removeInlineKeyboard = async (callback: any, answer: string) => {
 };
 
 app.post("/telegram-webhook", async (req, res) => {
-  const callback = req.body.callback_query;
+  const body = req.body;
 
+  // Handle slash commands
+  const message = body.message;
+  if (message?.text?.startsWith("/question")) {
+    res.sendStatus(200);
+    await run();
+    return;
+  }
+
+  if (message?.text?.startsWith("/random")) {
+    res.sendStatus(200);
+    const db = new Db();
+    const q = db.getRandomQuestion();
+    if (q) {
+      await sendTelegramMessage(`*${q.name}*\n${q.url}`);
+    } else {
+      await sendTelegramMessage("No questions found. Practice some questions first!");
+    }
+    return;
+  }
+
+  const callback = body.callback_query;
   if (!callback) return res.sendStatus(200);
 
   const [type, answer, questionId] = callback.data.split(":");

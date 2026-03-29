@@ -18,6 +18,7 @@ const client = new Anthropic({
 interface LeetcodeQuestion {
   id: string;
   name: string;
+  url: string;
   tags: string;
   difficulty: string | undefined;
   recentlyAttempted: boolean;
@@ -26,6 +27,7 @@ interface LeetcodeQuestion {
 const McqQuestionSchema = z.object({
   question: z.string(),
   leetcode_description: z.string(),
+  example: z.string(),
   options: z.array(
     z.object({
       content: z.string(),
@@ -37,6 +39,9 @@ const McqQuestionSchema = z.object({
 
 type McqQuestion = z.infer<typeof McqQuestionSchema> & {
   id: string;
+  notion_page_id: string;
+  leetcode_name: string;
+  leetcode_url: string;
 };
 
 const DATABASE_ID = process.env.DATABASE_ID;
@@ -79,10 +84,15 @@ async function fetchQuestions(
         result.properties.RevisedFor2026.type == "checkbox"
           ? result.properties.RevisedFor2026.checkbox
           : false;
+      const url =
+        result.properties.Leetcode?.type == "url"
+          ? (result.properties.Leetcode.url ?? "")
+          : "";
 
       return {
         id: result.id,
         name,
+        url,
         tags,
         difficulty,
         recentlyAttempted,
@@ -105,14 +115,14 @@ async function generateMcqs(
   questions: LeetcodeQuestion[],
 ): Promise<McqQuestion[]> {
   const mcqs = [];
-  for (const { name, tags } of questions) {
+  for (const { id, name, url, tags } of questions) {
     const response = await client.messages.parse({
       model: "claude-sonnet-4-6",
       max_tokens: 1024,
       messages: [
         {
           role: "user",
-          content: `Leetcode Question: ${name}. Tags: ${tags}. Generate a MCQ question with 4 options to test my understanding of the approach of the question. Do include an example of the function in the original Leetcode question, i.e. \`twoSum([1,2,3], 4) = [1,2]\``,
+          content: `Leetcode Question: ${name}. Tags: ${tags}. Generate a MCQ question with 4 options to test understanding of the approach. In the 'example' field, include a concrete function call example from the original Leetcode problem signature, formatted as: functionName(input) = output (e.g. twoSum([2,7,11,15], 9) = [0,1]).`,
         },
       ],
       output_config: {
@@ -121,7 +131,7 @@ async function generateMcqs(
     });
 
     if (response.parsed_output) {
-      mcqs.push({ ...response.parsed_output, id: nanoid() });
+      mcqs.push({ ...response.parsed_output, id: nanoid(), notion_page_id: id, leetcode_name: name, leetcode_url: url });
     }
   }
   return mcqs;
@@ -218,7 +228,7 @@ async function sendTelegramMessage(
 async function sendToTelegram(mcqs: McqQuestion[]) {
   for (const mcq of mcqs) {
     const originalQuestion = `*Leetcode Question:*\n${mcq.leetcode_description}\n\n`;
-    const questionText = `*Question:*\n${mcq.question}\n\n*Options:*\n${mcq.options.map((opt, idx) => `${String.fromCharCode(65 + idx)}. ${opt.content}`).join("\n\n")}`;
+    const questionText = `*Question:*\n${mcq.question}\n\n*Example:*\n\`${mcq.example}\`\n\n*Options:*\n${mcq.options.map((opt, idx) => `${String.fromCharCode(65 + idx)}. ${opt.content}`).join("\n\n")}`;
 
     // Send the original question first
     // Then send the MCQ question with options and inline keyboard for answers
@@ -238,33 +248,67 @@ async function sendToTelegram(mcqs: McqQuestion[]) {
   }
 }
 
-async function saveToDb(db: Db, mcqs: McqQuestion[]) {
+function saveToDb(db: Db, mcqs: McqQuestion[]) {
   for (const mcq of mcqs) {
     db.insertQuestion({
       id: mcq.id,
-      notion_page_id: DATABASE_ID ?? "", // Notion page ID can be added if saved to Notion
+      notion_page_id: mcq.notion_page_id,
+      leetcode_name: mcq.leetcode_name,
+      leetcode_url: mcq.leetcode_url,
       leetcode_question: mcq.leetcode_description,
       question: mcq.question,
       correct_answer: String.fromCharCode(
         65 + mcq.options.findIndex((opt) => opt.is_correct) ?? 26, // This means that Z = something went wrong
       ),
       explanation: mcq.explanation,
+      options_json: JSON.stringify(mcq.options),
+      example: mcq.example,
     });
   }
+}
+
+function questionToMcq(q: import("./db").Question): McqQuestion {
+  return {
+    id: q.id,
+    notion_page_id: q.notion_page_id,
+    leetcode_name: q.leetcode_name,
+    leetcode_url: q.leetcode_url,
+    question: q.question,
+    leetcode_description: q.leetcode_question,
+    example: q.example,
+    options: JSON.parse(q.options_json),
+    explanation: q.explanation,
+  };
 }
 
 export const run = async () => {
   const db = new Db();
 
   const results = await fetchQuestions(DATABASE_ID);
-  const questions = selectQuestions(results);
+  const selected = selectQuestions(results);
 
-  console.log("Selected Questions:", questions);
+  console.log("Selected Questions:", selected);
 
-  const mcqs = await generateMcqs(questions);
-  console.log("Generated ", mcqs.length, " MCQ(s)");
-  saveToDb(db, mcqs);
-  saveToFile(mcqs);
+  const mcqs: McqQuestion[] = [];
+  const newMcqs: McqQuestion[] = [];
+
+  for (const question of selected) {
+    const existing = db.getQuestionsByLeetcodePageId(question.id);
+    if (existing.length > 0) {
+      console.log(`Reusing cached question for: ${question.name}`);
+      mcqs.push(questionToMcq(_.sample(existing)!));
+    } else {
+      const [generated] = await generateMcqs([question]);
+      mcqs.push(generated);
+      newMcqs.push(generated);
+    }
+  }
+
+  if (newMcqs.length > 0) {
+    console.log("Generated ", newMcqs.length, " new MCQ(s)");
+    saveToDb(db, newMcqs);
+    saveToFile(newMcqs);
+  }
 
   await sendToTelegram(mcqs);
 };
